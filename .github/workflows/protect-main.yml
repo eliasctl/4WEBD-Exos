@@ -16,4 +16,4 @@ jobs:
         run: |
           echo "❌ Direct pushes to 'main' are not allowed."
           echo "Please open a pull request and have it reviewed before merging."
-          exit 0
+          exit 1
