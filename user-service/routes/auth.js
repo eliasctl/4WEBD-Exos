@@ -6,51 +6,9 @@ const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config');
 
 const router = express.Router();
 
-/**
- * @swagger
- * /auth/register:
- *   post:
- *     summary: Créer un compte utilisateur
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [firstName, lastName, email, password]
- *             properties:
- *               firstName:
- *                 type: string
- *                 example: Jean
- *               lastName:
- *                 type: string
- *                 example: Martin
- *               email:
- *                 type: string
- *                 example: jean.martin@bank.fr
- *               password:
- *                 type: string
- *                 example: motdepasse123
- *               role:
- *                 type: string
- *                 enum: [USER, ADMIN]
- *                 default: USER
- *     responses:
- *       201:
- *         description: Compte créé avec succès
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserPublic'
- *       400:
- *         description: Données invalides ou email déjà utilisé
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 router.post('/register', async (req, res) => {
+  // #swagger.tags = ['Auth']
+  // #swagger.description = 'Créer un compte utilisateur'
   const { firstName, lastName, email, password, role = 'USER' } = req.body;
 
   console.log(`[AUTH] 📝 Tentative d'inscription — email: ${email}`);
@@ -82,53 +40,9 @@ router.post('/register', async (req, res) => {
   return res.status(201).json(userPublic);
 });
 
-/**
- * @swagger
- * /auth/login:
- *   post:
- *     summary: Se connecter et obtenir un token JWT
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email, password]
- *             properties:
- *               email:
- *                 type: string
- *                 example: jean.martin@bank.fr
- *               password:
- *                 type: string
- *                 example: motdepasse123
- *     responses:
- *       200:
- *         description: Connexion réussie
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 user:
- *                   $ref: '#/components/schemas/UserPublic'
- *       400:
- *         description: Champs manquants
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: Identifiants incorrects
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 router.post('/login', async (req, res) => {
+  // #swagger.tags = ['Auth']
+  // #swagger.description = 'Se connecter et obtenir un token JWT'
   const { email, password } = req.body;
 
   console.log(`[AUTH] 🔑 Tentative de connexion — email: ${email}`);
@@ -159,29 +73,10 @@ router.post('/login', async (req, res) => {
   return res.status(200).json({ token, user: userPublic });
 });
 
-/**
- * @swagger
- * /auth/me:
- *   get:
- *     summary: Obtenir son propre profil (token requis)
- *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Profil de l'utilisateur connecté
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserPublic'
- *       401:
- *         description: Non authentifié
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 router.get('/me', require('../middleware/auth').authMiddleware, (req, res) => {
+  // #swagger.tags = ['Auth']
+  // #swagger.description = 'Obtenir son propre profil (token requis)'
+  // #swagger.security = [{ "bearerAuth": [] }]
   const user = db.findById(req.user.id);
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
