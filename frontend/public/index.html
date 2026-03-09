@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BankApp</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============ AUTH VIEW ============ -->
+  <div id="auth-view" class="view active">
+    <div class="auth-container">
+      <h1 class="auth-logo">BankApp</h1>
+      <p class="auth-subtitle">Votre banque, simplifiee.</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Connexion</button>
+        <button class="auth-tab" data-tab="register">Inscription</button>
+      </div>
+
+      <form id="login-form" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" placeholder="votre@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Mot de passe</label>
+          <input type="password" id="login-password" placeholder="Mot de passe" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+      </form>
+
+      <form id="register-form" class="auth-form hidden" novalidate>
+        <div class="form-group">
+          <label for="register-firstName">Prenom</label>
+          <input type="text" id="register-firstName" placeholder="Jean" required>
+        </div>
+        <div class="form-group">
+          <label for="register-lastName">Nom</label>
+          <input type="text" id="register-lastName" placeholder="Dupont" required>
+        </div>
+        <div class="form-group">
+          <label for="register-email">Email</label>
+          <input type="email" id="register-email" placeholder="votre@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="register-password">Mot de passe</label>
+          <input type="password" id="register-password" placeholder="Mot de passe" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Creer un compte</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ MAIN APP ============ -->
+  <div id="main-app" class="hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h2>BankApp</h2>
+      </div>
+
+      <nav>
+        <a class="nav-link active" data-view="dashboard">
+          <span class="nav-icon">&#9632;</span>
+          Tableau de bord
+        </a>
+        <a class="nav-link" data-view="transactions">
+          <span class="nav-icon">&#8644;</span>
+          Transactions
+        </a>
+        <a class="nav-link" data-view="notifications">
+          <span class="nav-icon">&#9993;</span>
+          Notifications
+        </a>
+        <a class="nav-link admin-only hidden" data-view="admin">
+          <span class="nav-icon">&#9881;</span>
+          Administration
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span id="user-name"></span>
+        <button id="logout-btn" class="btn btn-logout">Deconnexion</button>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <main id="content">
+
+      <!-- ---- Dashboard View ---- -->
+      <div id="dashboard-view" class="view active">
+        <div class="page-header">
+          <h1>Tableau de bord</h1>
+        </div>
+
+        <button id="create-account-btn" class="btn btn-primary" style="display:none;">Creer mon compte</button>
+
+        <div class="cards">
+          <div class="card">
+            <span class="card-title">Solde</span>
+            <span class="card-value" id="account-balance">--</span>
+            <span class="card-subtitle" id="account-id"></span>
+          </div>
+          <div class="card">
+            <span class="card-title">Devise</span>
+            <span class="card-value" id="account-currency">--</span>
+          </div>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <span class="card-title">Depot rapide</span>
+            <div class="form-row">
+              <input type="number" id="quick-deposit-amount" placeholder="Montant" min="0" step="0.01">
+              <button type="button" class="btn btn-success">Deposer</button>
+            </div>
+          </div>
+          <div class="card">
+            <span class="card-title">Retrait rapide</span>
+            <div class="form-row">
+              <input type="number" id="quick-withdraw-amount" placeholder="Montant" min="0" step="0.01">
+              <button type="button" class="btn btn-danger">Retirer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- Transactions View ---- -->
+      <div id="transactions-view" class="view">
+        <div class="page-header">
+          <h1>Transactions</h1>
+        </div>
+
+        <div class="cards">
+          <div class="card" style="grid-column: 1 / -1;">
+            <span class="card-title">Nouveau virement</span>
+            <form id="transfer-form" novalidate>
+              <div class="form-group">
+                <label for="transfer-to">Compte destinataire</label>
+                <input type="text" id="transfer-to" placeholder="ID du compte destinataire" required>
+              </div>
+              <div class="form-group">
+                <label for="transfer-amount">Montant</label>
+                <input type="number" id="transfer-amount" placeholder="0.00" min="0" step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label for="transfer-description">Description</label>
+                <input type="text" id="transfer-description" placeholder="Motif du virement">
+              </div>
+              <button type="submit" class="btn btn-primary">Envoyer</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card-title">Historique des transactions</span>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>De</th>
+                  <th>Vers</th>
+                  <th>Montant</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="transaction-list"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- Notifications View ---- -->
+      <div id="notifications-view" class="view">
+        <div class="page-header">
+          <h1>Notifications</h1>
+        </div>
+
+        <div id="notification-list"></div>
+      </div>
+
+      <!-- ---- Admin View ---- -->
+      <div id="admin-view" class="view">
+        <div class="page-header">
+          <h1>Administration</h1>
+        </div>
+
+        <div class="card">
+          <span class="card-title">Utilisateurs</span>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Prenom</th>
+                  <th>Nom</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Cree le</th>
+                </tr>
+              </thead>
+              <tbody id="user-list"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

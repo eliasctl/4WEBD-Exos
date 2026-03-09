@@ -1,7 +1,6 @@
-
 const express = require("express");
-const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger-output.json");
 const Database = require("better-sqlite3");
 const path = require("path");
 
@@ -32,81 +31,7 @@ console.log("[DB] ✅ Base SQLite connectée — notifications.db");
 
 // ─── Swagger ──────────────────────────────────────────────────────────────────
 
-const swaggerOptions = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "Notification Service API",
-      version: "1.0.0",
-      description: "Microservice de notifications bancaires (email, SMS, push)",
-    },
-    servers: [
-      { url: `http://localhost:${PORT}`, description: "Serveur local" },
-    ],
-    tags: [
-      {
-        name: "Notifications",
-        description: "Envoi et historique de notifications",
-      },
-      { name: "Health", description: "Santé du service" },
-    ],
-    components: {
-      schemas: {
-        NotificationResult: {
-          type: "object",
-          properties: {
-            notificationId: { type: "string", example: "NOTIF-1710000000000" },
-            timestamp: { type: "string", format: "date-time" },
-            status: { type: "string", example: "SENT" },
-          },
-        },
-        Notification: {
-          type: "object",
-          properties: {
-            id: { type: "string", example: "NOTIF-1710000000000" },
-            type: { type: "string", example: "EMAIL" },
-            recipient: { type: "string", example: "client@bank.fr" },
-            message: { type: "string" },
-            metadata: { type: "object" },
-            status: { type: "string", example: "SENT" },
-            createdAt: { type: "string", format: "date-time" },
-          },
-        },
-        Error: {
-          type: "object",
-          properties: {
-            error: { type: "string" },
-          },
-        },
-        Pagination: {
-          type: "object",
-          properties: {
-            total: { type: "integer", example: 42 },
-            page: { type: "integer", example: 1 },
-            limit: { type: "integer", example: 10 },
-            totalPages: { type: "integer", example: 5 },
-            hasNext: { type: "boolean", example: true },
-            hasPrev: { type: "boolean", example: false },
-          },
-        },
-        PaginatedNotifications: {
-          type: "object",
-          properties: {
-            data: {
-              type: "array",
-              items: { $ref: "#/components/schemas/Notification" },
-            },
-            pagination: { $ref: "#/components/schemas/Pagination" },
-          },
-        },
-      },
-    },
-  },
-  apis: ["./index.js"],
-};
-
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // ─── Logique ──────────────────────────────────────────────────────────────────
 
@@ -147,40 +72,9 @@ function sendNotification(type, recipient, message, metadata = {}) {
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
-/**
- * @swagger
- * /notifications:
- *   get:
- *     summary: Lister l'historique des notifications
- *     tags: [Notifications]
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Numéro de page (commence à 1)
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Nombre d'éléments par page
- *       - in: query
- *         name: type
- *         schema:
- *           type: string
- *           enum: [EMAIL, SMS, PUSH]
- *         description: Filtrer par type de notification
- *     responses:
- *       200:
- *         description: Liste paginée des notifications
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PaginatedNotifications'
- */
 app.get("/notifications", (req, res) => {
+  // #swagger.tags = ['Notifications']
+  // #swagger.description = "Lister l'historique des notifications"
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
   const type = req.query.type?.toUpperCase();
@@ -217,54 +111,9 @@ app.get("/notifications", (req, res) => {
   });
 });
 
-/**
- * @swagger
- * /notifications:
- *   post:
- *     summary: Envoyer une notification générique
- *     tags: [Notifications]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [type, recipient, message]
- *             properties:
- *               type:
- *                 type: string
- *                 enum: [EMAIL, SMS, PUSH]
- *                 example: EMAIL
- *               recipient:
- *                 type: string
- *                 example: client@bank.fr
- *               message:
- *                 type: string
- *                 example: Votre virement a été effectué.
- *               metadata:
- *                 type: object
- *                 example: { "accountId": "ACC-123" }
- *     responses:
- *       201:
- *         description: Notification envoyée
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - type: object
- *                   properties:
- *                     success:
- *                       type: boolean
- *                       example: true
- *                 - $ref: '#/components/schemas/NotificationResult'
- *       400:
- *         description: Paramètres manquants ou invalides
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.post("/notifications", (req, res) => {
+  // #swagger.tags = ['Notifications']
+  // #swagger.description = 'Envoyer une notification générique'
   const { type, recipient, message, metadata } = req.body;
 
   if (!type || !recipient || !message) {
@@ -288,66 +137,9 @@ app.post("/notifications", (req, res) => {
   return res.status(201).json({ success: true, ...result });
 });
 
-/**
- * @swagger
- * /notifications/transaction:
- *   post:
- *     summary: Notifier une transaction bancaire
- *     description: Envoie une notification par EMAIL et/ou SMS selon les infos fournies. Si aucun canal n'est fourni, envoie une notification PUSH.
- *     tags: [Notifications]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [userId, amount, transactionType]
- *             properties:
- *               userId:
- *                 type: string
- *                 example: usr-42
- *               email:
- *                 type: string
- *                 example: client@bank.fr
- *               phone:
- *                 type: string
- *                 example: "+33612345678"
- *               amount:
- *                 type: number
- *                 example: 250
- *               currency:
- *                 type: string
- *                 example: EUR
- *                 default: EUR
- *               transactionType:
- *                 type: string
- *                 example: VIREMENT
- *     responses:
- *       201:
- *         description: Notifications envoyées
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 notificationsSent:
- *                   type: integer
- *                   example: 2
- *                 notifications:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/NotificationResult'
- *       400:
- *         description: Paramètres manquants
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.post("/notifications/transaction", (req, res) => {
+  // #swagger.tags = ['Notifications']
+  // #swagger.description = 'Notifier une transaction bancaire (EMAIL/SMS/PUSH)'
   const {
     userId,
     email,
@@ -402,53 +194,9 @@ app.post("/notifications/transaction", (req, res) => {
     });
 });
 
-/**
- * @swagger
- * /notifications/alert:
- *   post:
- *     summary: Envoyer une alerte de sécurité
- *     tags: [Notifications]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [userId, alertType]
- *             properties:
- *               userId:
- *                 type: string
- *                 example: usr-42
- *               email:
- *                 type: string
- *                 example: client@bank.fr
- *               alertType:
- *                 type: string
- *                 example: CONNEXION_SUSPECTE
- *               details:
- *                 type: string
- *                 example: Tentative de connexion depuis un nouvel appareil.
- *     responses:
- *       201:
- *         description: Alerte envoyée
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - type: object
- *                   properties:
- *                     success:
- *                       type: boolean
- *                       example: true
- *                 - $ref: '#/components/schemas/NotificationResult'
- *       400:
- *         description: Paramètres manquants
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.post("/notifications/alert", (req, res) => {
+  // #swagger.tags = ['Notifications']
+  // #swagger.description = 'Envoyer une alerte de sécurité'
   const { userId, email, alertType, details } = req.body;
 
   if (!userId || !alertType) {
@@ -468,31 +216,9 @@ app.post("/notifications/alert", (req, res) => {
   return res.status(201).json({ success: true, ...result });
 });
 
-/**
- * @swagger
- * /health:
- *   get:
- *     summary: Vérifier la santé du service
- *     tags: [Health]
- *     responses:
- *       200:
- *         description: Service opérationnel
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: UP
- *                 service:
- *                   type: string
- *                   example: notification-service
- *                 port:
- *                   type: integer
- *                   example: 3001
- */
 app.get("/health", (req, res) => {
+  // #swagger.tags = ['Health']
+  // #swagger.description = 'Vérifier la santé du service'
   res.json({ status: "UP", service: "notification-service", port: PORT });
 });
 
