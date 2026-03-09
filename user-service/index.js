@@ -1,6 +1,7 @@
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = require("./swagger-output.json");
+const fs = require("fs");
+const path = require("path");
 const { PORT } = require("./config");
 
 const app = express();
@@ -8,7 +9,11 @@ app.use(express.json());
 
 // ─── Swagger ──────────────────────────────────────────────────────────────────
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const swaggerPath = path.join(__dirname, "swagger-output.json");
+if (fs.existsSync(swaggerPath)) {
+  const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, "utf8"));
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+}
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 

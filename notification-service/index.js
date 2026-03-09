@@ -1,6 +1,6 @@
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = require("./swagger-output.json");
+const fs = require("fs");
 const Database = require("better-sqlite3");
 const path = require("path");
 
@@ -31,7 +31,11 @@ console.log("[DB] ✅ Base SQLite connectée — notifications.db");
 
 // ─── Swagger ──────────────────────────────────────────────────────────────────
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const swaggerPath = path.join(__dirname, "swagger-output.json");
+if (fs.existsSync(swaggerPath)) {
+  const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, "utf8"));
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+}
 
 // ─── Logique ──────────────────────────────────────────────────────────────────
 
@@ -150,11 +154,9 @@ app.post("/notifications/transaction", (req, res) => {
   } = req.body;
 
   if (!userId || !amount || !transactionType) {
-    return res
-      .status(400)
-      .json({
-        error: "Les champs userId, amount et transactionType sont requis",
-      });
+    return res.status(400).json({
+      error: "Les champs userId, amount et transactionType sont requis",
+    });
   }
 
   const message = `Transaction ${transactionType} de ${amount} ${currency} effectuée sur votre compte.`;
@@ -185,13 +187,11 @@ app.post("/notifications/transaction", (req, res) => {
       }),
     );
 
-  return res
-    .status(201)
-    .json({
-      success: true,
-      notificationsSent: results.length,
-      notifications: results,
-    });
+  return res.status(201).json({
+    success: true,
+    notificationsSent: results.length,
+    notifications: results,
+  });
 });
 
 app.post("/notifications/alert", (req, res) => {
