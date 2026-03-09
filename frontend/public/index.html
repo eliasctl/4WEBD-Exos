@@ -191,6 +191,29 @@
         </div>
 
         <div class="card">
+          <span class="card-title">Envoyer une notification</span>
+          <form id="send-notification-form" novalidate>
+            <div class="form-group">
+              <label for="notif-type">Type</label>
+              <select id="notif-type" required>
+                <option value="EMAIL">EMAIL</option>
+                <option value="SMS">SMS</option>
+                <option value="PUSH">PUSH</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="notif-recipient">Destinataire</label>
+              <input type="text" id="notif-recipient" placeholder="email, telephone ou user:id" required>
+            </div>
+            <div class="form-group">
+              <label for="notif-message">Message</label>
+              <input type="text" id="notif-message" placeholder="Contenu de la notification" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Envoyer</button>
+          </form>
+        </div>
+
+        <div class="card">
           <span class="card-title">Utilisateurs</span>
           <div class="table-wrapper">
             <table class="table">
@@ -202,6 +225,7 @@
                   <th>Email</th>
                   <th>Role</th>
                   <th>Cree le</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="user-list"></tbody>

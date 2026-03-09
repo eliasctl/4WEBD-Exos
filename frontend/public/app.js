@@ -483,6 +483,13 @@
       }
 
       tbody.innerHTML = users.map(function (u) {
+        var isSelf = user && u.id === user.id;
+        var toggleLabel = u.role === 'ADMIN' ? 'Passer USER' : 'Passer ADMIN';
+        var toggleRole = u.role === 'ADMIN' ? 'USER' : 'ADMIN';
+        var actions = isSelf
+          ? '<em style="color:#888">—</em>'
+          : '<button class="btn btn-sm" onclick="adminChangeRole(\'' + escapeHtml(u.id) + '\',\'' + toggleRole + '\')">' + toggleLabel + '</button> ' +
+            '<button class="btn btn-sm btn-danger" onclick="adminDeleteUser(\'' + escapeHtml(u.id) + '\')">Supprimer</button>';
         return (
           '<tr>' +
           '<td>' + escapeHtml(u.id) + '</td>' +
@@ -491,12 +498,68 @@
           '<td>' + escapeHtml(u.email) + '</td>' +
           '<td><span class="badge badge-' + u.role.toLowerCase() + '">' + escapeHtml(u.role) + '</span></td>' +
           '<td>' + formatDate(u.createdAt) + '</td>' +
+          '<td>' + actions + '</td>' +
           '</tr>'
         );
       }).join('');
     } catch (err) {
       showToast(err.message, 'error');
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Erreur lors du chargement</td></tr>';
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Admin — Change user role / Delete user
+  // ---------------------------------------------------------------------------
+
+  async function adminChangeRole(userId, newRole) {
+    try {
+      await api('PUT', '/api/users/' + userId, { role: newRole });
+      showToast('Rôle mis à jour : ' + newRole, 'success');
+      loadUsers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  async function adminDeleteUser(userId) {
+    if (!confirm('Supprimer cet utilisateur ?')) return;
+    try {
+      await api('DELETE', '/api/users/' + userId);
+      showToast('Utilisateur supprimé', 'success');
+      loadUsers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // Expose for inline onclick handlers
+  window.adminChangeRole = adminChangeRole;
+  window.adminDeleteUser = adminDeleteUser;
+
+  // ---------------------------------------------------------------------------
+  // Admin — Send notification
+  // ---------------------------------------------------------------------------
+
+  async function handleSendNotification(e) {
+    e.preventDefault();
+
+    var type = $('#notif-type').value;
+    var recipient = $('#notif-recipient').value.trim();
+    var message = $('#notif-message').value.trim();
+
+    if (!recipient || !message) {
+      showToast('Veuillez remplir tous les champs', 'error');
+      return;
+    }
+
+    try {
+      await api('POST', '/api/notifications', { type: type, recipient: recipient, message: message });
+      showToast('Notification envoyee avec succes', 'success');
+      $('#notif-recipient').value = '';
+      $('#notif-message').value = '';
+    } catch (err) {
+      showToast(err.message, 'error');
     }
   }
 
@@ -604,6 +667,12 @@
     var transferForm = $('#transfer-form');
     if (transferForm) {
       transferForm.addEventListener('submit', handleTransfer);
+    }
+
+    // --- Send notification form (admin) --------------------------------------
+    var sendNotifForm = $('#send-notification-form');
+    if (sendNotifForm) {
+      sendNotifForm.addEventListener('submit', handleSendNotification);
     }
 
     // --- Logout --------------------------------------------------------------

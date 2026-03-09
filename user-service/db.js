@@ -80,7 +80,7 @@ const insert = (user) => {
 };
 
 const update = (id, fields) => {
-  const allowed = ["firstName", "lastName", "email", "password"];
+  const allowed = ["firstName", "lastName", "email", "password", "role"];
   const updates = Object.keys(fields)
     .filter((k) => allowed.includes(k) && fields[k] !== undefined)
     .map((k) => `${k} = @${k}`)

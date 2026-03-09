@@ -64,7 +64,7 @@ router.put('/:id', async (req, res) => {
 
   if (!db.findById(id)) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, role } = req.body;
 
   if (email) {
     const existing = db.findByEmail(email);
@@ -73,8 +73,18 @@ router.put('/:id', async (req, res) => {
     }
   }
 
+  if (role !== undefined) {
+    if (req.user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Seul un admin peut modifier le rôle' });
+    }
+    if (!['USER', 'ADMIN'].includes(role)) {
+      return res.status(400).json({ error: 'Rôle invalide. Valeurs acceptées : USER, ADMIN' });
+    }
+  }
+
   const fields = { firstName, lastName, email };
   if (password) fields.password = await bcrypt.hash(password, 10);
+  if (role !== undefined) fields.role = role;
 
   const updated = db.update(id, fields);
   console.log(`[USERS] ✏️  Utilisateur mis à jour — id: ${id}`);
