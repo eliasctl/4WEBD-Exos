@@ -13,6 +13,18 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
+echo "=== Lancement des tests ==="
+for service in "${SERVICES[@]}"; do
+  echo "Tests de $service..."
+  (cd "$service" && npm test)
+  if [ $? -ne 0 ]; then
+    echo "❌ Les tests de $service ont échoué. Arrêt."
+    exit 1
+  fi
+done
+echo "✅ Tous les tests passent."
+echo ""
+
 for service in "${SERVICES[@]}"; do
   echo "Démarrage de $service..."
   (cd "$service" && npm run dev) &
