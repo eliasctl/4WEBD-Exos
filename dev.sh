@@ -26,12 +26,12 @@ echo "✅ Tous les tests passent."
 echo ""
 
 for service in "${SERVICES[@]}"; do
-  if [ ! -d "$service/node_modules" ]; then
-    echo "📦 Installation des dépendances pour $service..."
-    (cd "$service" && npm install)
-  fi
+  echo "📦 Installation des dépendances pour $service..."
+  (cd "$service" && npm install)
+  echo "📄 Génération Swagger pour $service..."
+  (cd "$service" && node swagger.js)
   echo "🚀 Démarrage de $service..."
-  (cd "$service" && npm run start) &
+  (cd "$service" && npm run dev) &
   PIDS+=($!)
 done
 
