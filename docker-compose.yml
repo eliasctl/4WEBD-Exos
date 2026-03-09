@@ -32,10 +32,10 @@ services:
 
   frontend:
     build: ./frontend
-    ports:
-      - "3010:3000"
-    # expose:
-    #   - "3000"
+    # ports:
+    #   - "3010:3000"
+    expose:
+      - "3000"
     depends_on:
       - user-service
       - notification-service
