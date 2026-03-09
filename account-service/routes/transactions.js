@@ -5,30 +5,10 @@ const { authMiddleware } = require('../middleware/auth');
 
 router.use(authMiddleware);
 
-/**
- * @swagger
- * /transactions:
- *   get:
- *     summary: Historique des transactions du compte connecté
- *     tags: [Transactions]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Liste des transactions
- *       404:
- *         description: Aucun compte trouvé
- */
 router.get('/', (req, res) => {
+  // #swagger.tags = ['Transactions']
+  // #swagger.description = 'Historique des transactions du compte connecté'
+  // #swagger.security = [{ "bearerAuth": [] }]
   const account = accountStmts.findByUserId.get(req.user.id);
   if (!account) return res.status(404).json({ error: 'Aucun compte trouvé pour cet utilisateur' });
 
@@ -54,42 +34,12 @@ router.get('/', (req, res) => {
   });
 });
 
-/**
- * @swagger
- * /transactions/transfer:
- *   post:
- *     summary: Effectuer un virement vers un autre compte
- *     tags: [Transactions]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [toAccountId, amount]
- *             properties:
- *               toAccountId:
- *                 type: string
- *                 example: acc-2
- *               amount:
- *                 type: number
- *                 example: 50
- *               description:
- *                 type: string
- *                 example: Remboursement loyer
- *     responses:
- *       200:
- *         description: Virement effectué
- *       400:
- *         description: Solde insuffisant ou montant invalide
- *       404:
- *         description: Compte source introuvable
- */
 router.post('/transfer', (req, res) => {
+  // #swagger.tags = ['Transactions']
+  // #swagger.description = 'Effectuer un virement vers un autre compte'
+  // #swagger.security = [{ "bearerAuth": [] }]
   const fromAccount = accountStmts.findByUserId.get(req.user.id);
-  if (!fromAccount) return res.status(404).json({ error: 'Vous n\'avez pas de compte' });
+  if (!fromAccount) return res.status(404).json({ error: "Vous n'avez pas de compte" });
 
   const { toAccountId, amount, description } = req.body;
   if (!toAccountId) return res.status(400).json({ error: 'toAccountId requis' });

@@ -6,3 +6,6 @@
 *.sqlite
 *.sqlite3
 *.db-*
+
+# Swagger generated
+*/swagger-output.json

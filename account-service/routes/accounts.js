@@ -5,19 +5,10 @@ const { authMiddleware, adminOnly } = require('../middleware/auth');
 
 router.use(authMiddleware);
 
-/**
- * @swagger
- * /accounts:
- *   get:
- *     summary: Lister les comptes (admin = tous, user = le sien)
- *     tags: [Accounts]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Liste des comptes
- */
 router.get('/', (req, res) => {
+  // #swagger.tags = ['Accounts']
+  // #swagger.description = 'Lister les comptes (admin = tous, user = le sien)'
+  // #swagger.security = [{ "bearerAuth": [] }]
   if (req.user.role === 'ADMIN') {
     const accounts = accountStmts.findAll.all();
     console.log(`[ACCOUNTS] 📋 Admin liste tous les comptes (${accounts.length})`);
@@ -28,30 +19,10 @@ router.get('/', (req, res) => {
   return res.json({ data: account ? [account] : [] });
 });
 
-/**
- * @swagger
- * /accounts:
- *   post:
- *     summary: Créer un compte pour l'utilisateur connecté
- *     tags: [Accounts]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               currency:
- *                 type: string
- *                 example: EUR
- *     responses:
- *       201:
- *         description: Compte créé
- *       409:
- *         description: Compte déjà existant
- */
 router.post('/', (req, res) => {
+  // #swagger.tags = ['Accounts']
+  // #swagger.description = "Créer un compte pour l'utilisateur connecté"
+  // #swagger.security = [{ "bearerAuth": [] }]
   const existing = accountStmts.findByUserId.get(req.user.id);
   if (existing) {
     console.log(`[ACCOUNTS] ⚠️ Compte déjà existant pour userId: ${req.user.id}`);
@@ -72,29 +43,10 @@ router.post('/', (req, res) => {
   return res.status(201).json(account);
 });
 
-/**
- * @swagger
- * /accounts/{id}:
- *   get:
- *     summary: Obtenir un compte par ID
- *     tags: [Accounts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Compte trouvé
- *       403:
- *         description: Accès refusé
- *       404:
- *         description: Compte introuvable
- */
 router.get('/:id', (req, res) => {
+  // #swagger.tags = ['Accounts']
+  // #swagger.description = 'Obtenir un compte par ID'
+  // #swagger.security = [{ "bearerAuth": [] }]
   const account = accountStmts.findById.get(req.params.id);
   if (!account) {
     return res.status(404).json({ error: 'Compte introuvable' });
@@ -107,36 +59,10 @@ router.get('/:id', (req, res) => {
   return res.json(account);
 });
 
-/**
- * @swagger
- * /accounts/{id}/deposit:
- *   post:
- *     summary: Déposer de l'argent sur un compte
- *     tags: [Accounts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [amount]
- *             properties:
- *               amount:
- *                 type: number
- *                 example: 100
- *     responses:
- *       200:
- *         description: Dépôt effectué
- */
 router.post('/:id/deposit', (req, res) => {
+  // #swagger.tags = ['Accounts']
+  // #swagger.description = "Déposer de l'argent sur un compte"
+  // #swagger.security = [{ "bearerAuth": [] }]
   const account = accountStmts.findById.get(req.params.id);
   if (!account) return res.status(404).json({ error: 'Compte introuvable' });
   if (req.user.role !== 'ADMIN' && account.userId !== req.user.id) {
@@ -165,38 +91,10 @@ router.post('/:id/deposit', (req, res) => {
   return res.json({ ...account, balance: newBalance, transaction: tx });
 });
 
-/**
- * @swagger
- * /accounts/{id}/withdraw:
- *   post:
- *     summary: Retirer de l'argent d'un compte
- *     tags: [Accounts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [amount]
- *             properties:
- *               amount:
- *                 type: number
- *                 example: 50
- *     responses:
- *       200:
- *         description: Retrait effectué
- *       400:
- *         description: Solde insuffisant
- */
 router.post('/:id/withdraw', (req, res) => {
+  // #swagger.tags = ['Accounts']
+  // #swagger.description = "Retirer de l'argent d'un compte"
+  // #swagger.security = [{ "bearerAuth": [] }]
   const account = accountStmts.findById.get(req.params.id);
   if (!account) return res.status(404).json({ error: 'Compte introuvable' });
   if (req.user.role !== 'ADMIN' && account.userId !== req.user.id) {
