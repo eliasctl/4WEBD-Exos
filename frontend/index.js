@@ -4,17 +4,32 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ─── CORS ────────────────────────────────────────────────────────────────────
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 // ─── API Proxy ───────────────────────────────────────────────────────────────
 
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+const ACCOUNT_SERVICE_URL = process.env.ACCOUNT_SERVICE_URL || 'http://localhost:3003';
+const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3001';
+
 const SERVICES = {
-  auth: 'http://localhost:3002',
-  users: 'http://localhost:3002',
-  accounts: 'http://localhost:3003',
-  transactions: 'http://localhost:3003',
-  notifications: 'http://localhost:3001',
+  auth: USER_SERVICE_URL,
+  users: USER_SERVICE_URL,
+  accounts: ACCOUNT_SERVICE_URL,
+  transactions: ACCOUNT_SERVICE_URL,
+  notifications: NOTIFICATION_SERVICE_URL,
 };
 
 app.all('/api/{*splat}', async (req, res) => {
