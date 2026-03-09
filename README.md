@@ -4,12 +4,12 @@ Application bancaire construite en architecture microservices avec Node.js, Expr
 
 ## Architecture
 
-| Service | Port | Description |
-|---|---|---|
-| **user-service** | 3002 | Gestion des utilisateurs et authentification JWT |
-| **account-service** | 3003 | Comptes bancaires, dépôts, retraits et virements |
-| **notification-service** | 3001 | Notifications (EMAIL, SMS, PUSH) et alertes |
-| **frontend** | 3000 | Interface web |
+| Service                  | Port | Description                                      |
+| ------------------------ | ---- | ------------------------------------------------ |
+| **user-service**         | 3002 | Gestion des utilisateurs et authentification JWT |
+| **account-service**      | 3003 | Comptes bancaires, dépôts, retraits et virements |
+| **notification-service** | 3001 | Notifications (EMAIL, SMS, PUSH) et alertes      |
+| **frontend**             | 3000 | Interface web                                    |
 
 ## Prérequis
 
@@ -23,6 +23,7 @@ chmod +x dev.sh
 ```
 
 Ce script :
+
 1. Installe les dépendances de chaque service
 2. Génère la documentation Swagger
 3. Lance les tests — s'arrête si un test échoue
@@ -59,6 +60,7 @@ Chaque service expose une documentation Swagger UI :
 ## Endpoints principaux
 
 ### User Service (`:3002`)
+
 - `POST /auth/register` — Inscription
 - `POST /auth/login` — Connexion (retourne un JWT)
 - `GET /auth/me` — Profil courant (token requis)
@@ -66,6 +68,7 @@ Chaque service expose une documentation Swagger UI :
 - `GET/PUT/DELETE /users/:id` — CRUD utilisateur
 
 ### Account Service (`:3003`)
+
 - `POST /accounts` — Créer un compte
 - `GET /accounts` — Lister ses comptes
 - `POST /accounts/:id/deposit` — Déposer
@@ -74,6 +77,7 @@ Chaque service expose une documentation Swagger UI :
 - `GET /transactions` — Historique
 
 ### Notification Service (`:3001`)
+
 - `POST /notifications` — Envoyer une notification
 - `GET /notifications` — Historique des notifications
 - `POST /notifications/transaction` — Notifier une transaction
