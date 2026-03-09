@@ -15,7 +15,7 @@ trap cleanup SIGINT SIGTERM
 
 for service in "${SERVICES[@]}"; do
   echo "Démarrage de $service..."
-  (cd "$service" && npm run dev) &
+  (cd "$service" && npm run start) &
   PIDS+=($!)
 done
 
