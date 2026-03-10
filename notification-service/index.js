@@ -26,6 +26,7 @@ const PORT = process.env.PORT || 3001;
 const dbPath = process.env.DB_PATH || path.join(__dirname, "notifications.db");
 const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");
+db.pragma("busy_timeout = 5000");
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS notifications (

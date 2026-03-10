@@ -7,28 +7,22 @@ router.use(authMiddleware);
 
 router.get('/', (req, res) => {
   // #swagger.tags = ['Accounts']
-  // #swagger.description = 'Lister les comptes (admin = tous, user = le sien)'
+  // #swagger.description = 'Lister les comptes (admin = tous, user = les siens)'
   // #swagger.security = [{ "bearerAuth": [] }]
   if (req.user.role === 'ADMIN') {
     const accounts = accountStmts.findAll.all();
     console.log(`[ACCOUNTS] 📋 Admin liste tous les comptes (${accounts.length})`);
     return res.json({ data: accounts });
   }
-  const account = accountStmts.findByUserId.get(req.user.id);
-  console.log(`[ACCOUNTS] 📋 User ${req.user.id} consulte son compte`);
-  return res.json({ data: account ? [account] : [] });
+  const accounts = accountStmts.findAllByUserId.all(req.user.id);
+  console.log(`[ACCOUNTS] 📋 User ${req.user.id} consulte ses comptes (${accounts.length})`);
+  return res.json({ data: accounts });
 });
 
 router.post('/', (req, res) => {
   // #swagger.tags = ['Accounts']
   // #swagger.description = "Créer un compte pour l'utilisateur connecté"
   // #swagger.security = [{ "bearerAuth": [] }]
-  const existing = accountStmts.findByUserId.get(req.user.id);
-  if (existing) {
-    console.log(`[ACCOUNTS] ⚠️ Compte déjà existant pour userId: ${req.user.id}`);
-    return res.status(409).json({ error: 'Un compte existe déjà pour cet utilisateur' });
-  }
-
   const { currency = 'EUR' } = req.body;
   const account = {
     id: nextAccountId(),

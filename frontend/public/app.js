@@ -11,6 +11,7 @@
 
   let token = localStorage.getItem('token');
   let user = null;
+  let accounts = [];
   let account = null;
 
   // ---------------------------------------------------------------------------
@@ -263,29 +264,58 @@
   async function loadDashboard() {
     try {
       var data = await api('GET', '/api/accounts');
-      var accounts = data.data || [];
+      accounts = data.data || [];
 
+      var selector = $('#account-selector');
       var balanceEl = $('#account-balance');
       var idEl = $('#account-id');
       var currencyEl = $('#account-currency');
-      var createBtn = $('#create-account-btn');
 
+      // Populate account selector
+      if (selector) {
+        var previousId = account ? account.id : null;
+        selector.innerHTML = accounts.length === 0
+          ? '<option value="">Aucun compte</option>'
+          : accounts.map(function (a) {
+              return '<option value="' + escapeHtml(a.id) + '">' +
+                escapeHtml(a.id) + ' — ' + formatAmount(a.balance) + ' (' + escapeHtml(a.currency) + ')' +
+                '</option>';
+            }).join('');
+
+        // Restore previous selection or default to first
+        if (previousId && accounts.some(function (a) { return a.id === previousId; })) {
+          selector.value = previousId;
+        }
+      }
+
+      // Select current account
       if (accounts.length > 0) {
-        account = accounts[0];
+        var selectedId = selector ? selector.value : null;
+        account = accounts.find(function (a) { return a.id === selectedId; }) || accounts[0];
         if (balanceEl) balanceEl.textContent = formatAmount(account.balance);
         if (idEl) idEl.textContent = account.id;
         if (currencyEl) currencyEl.textContent = account.currency || 'EUR';
-        if (createBtn) createBtn.style.display = 'none';
       } else {
         account = null;
         if (balanceEl) balanceEl.textContent = '—';
         if (idEl) idEl.textContent = '—';
         if (currencyEl) currencyEl.textContent = '—';
-        if (createBtn) createBtn.style.display = '';
       }
     } catch (err) {
       showToast(err.message, 'error');
     }
+  }
+
+  function handleAccountSwitch() {
+    var selector = $('#account-selector');
+    if (!selector || accounts.length === 0) return;
+    account = accounts.find(function (a) { return a.id === selector.value; }) || accounts[0];
+    var balanceEl = $('#account-balance');
+    var idEl = $('#account-id');
+    var currencyEl = $('#account-currency');
+    if (balanceEl) balanceEl.textContent = formatAmount(account.balance);
+    if (idEl) idEl.textContent = account.id;
+    if (currencyEl) currencyEl.textContent = account.currency || 'EUR';
   }
 
   async function handleCreateAccount() {
@@ -360,7 +390,9 @@
     }
 
     try {
-      var data = await api('GET', '/api/transactions');
+      var txPath = '/api/transactions';
+      if (account) txPath += '?accountId=' + encodeURIComponent(account.id);
+      var data = await api('GET', txPath);
       var transactions = data.data || [];
 
       if (transactions.length === 0) {
@@ -408,6 +440,7 @@
 
     try {
       await api('POST', '/api/transactions/transfer', {
+        fromAccountId: account.id,
         toAccountId: toAccountId,
         amount: amount,
         description: description || undefined,
@@ -570,6 +603,7 @@
   function handleLogout() {
     token = null;
     user = null;
+    accounts = [];
     account = null;
     localStorage.removeItem('token');
     window.location.reload();
@@ -622,6 +656,12 @@
         if (view) navigateTo(view);
       });
     });
+
+    // --- Account selector ----------------------------------------------------
+    var accountSelector = $('#account-selector');
+    if (accountSelector) {
+      accountSelector.addEventListener('change', handleAccountSwitch);
+    }
 
     // --- Create account button -----------------------------------------------
     var createAccountBtn = $('#create-account-btn');

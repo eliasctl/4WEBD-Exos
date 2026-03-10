@@ -5,7 +5,7 @@ services:
   user-service-1:
     build: ./user-service
     volumes:
-      - user-data-1:/app/data
+      - user-data:/app/data
     environment:
       - DB_PATH=/app/data/users.db
       - JWT_SECRET=${JWT_SECRET}
@@ -16,7 +16,7 @@ services:
   user-service-2:
     build: ./user-service
     volumes:
-      - user-data-2:/app/data
+      - user-data:/app/data
     environment:
       - DB_PATH=/app/data/users.db
       - JWT_SECRET=${JWT_SECRET}
@@ -38,7 +38,7 @@ services:
   notification-service-1:
     build: ./notification-service
     volumes:
-      - notification-data-1:/app/data
+      - notification-data:/app/data
     environment:
       - DB_PATH=/app/data/notifications.db
     networks:
@@ -48,7 +48,7 @@ services:
   notification-service-2:
     build: ./notification-service
     volumes:
-      - notification-data-2:/app/data
+      - notification-data:/app/data
     environment:
       - DB_PATH=/app/data/notifications.db
     networks:
@@ -102,8 +102,6 @@ networks:
     driver: bridge
 
 volumes:
-  user-data-1:
-  user-data-2:
-  notification-data-1:
-  notification-data-2:
+  user-data:
+  notification-data:
   account-data:

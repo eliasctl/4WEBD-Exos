@@ -4,12 +4,13 @@ const path = require("path");
 const dbPath = process.env.DB_PATH || path.join(__dirname, "accounts.db");
 const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");
+db.pragma("busy_timeout = 5000");
 db.pragma("foreign_keys = ON");
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS accounts (
     id        TEXT PRIMARY KEY,
-    userId    TEXT NOT NULL UNIQUE,
+    userId    TEXT NOT NULL,
     balance   REAL NOT NULL DEFAULT 0,
     currency  TEXT NOT NULL DEFAULT 'EUR',
     createdAt TEXT NOT NULL
@@ -27,6 +28,25 @@ db.exec(`
     FOREIGN KEY (toAccount)   REFERENCES accounts(id)
   );
 `);
+
+// Migration: supprime la contrainte UNIQUE sur userId (ancien schema)
+const tableSchema = db
+  .prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='accounts'")
+  .get();
+if (tableSchema && tableSchema.sql.includes("UNIQUE")) {
+  db.exec(`
+    CREATE TABLE accounts_new (
+      id        TEXT PRIMARY KEY,
+      userId    TEXT NOT NULL,
+      balance   REAL NOT NULL DEFAULT 0,
+      currency  TEXT NOT NULL DEFAULT 'EUR',
+      createdAt TEXT NOT NULL
+    );
+    INSERT INTO accounts_new SELECT * FROM accounts;
+    DROP TABLE accounts;
+    ALTER TABLE accounts_new RENAME TO accounts;
+  `);
+}
 
 let counter = db.prepare("SELECT COUNT(*) as count FROM accounts").get().count;
 
@@ -47,7 +67,9 @@ function nextTxId() {
 const accountStmts = {
   findAll: db.prepare("SELECT * FROM accounts ORDER BY createdAt DESC"),
   findById: db.prepare("SELECT * FROM accounts WHERE id = ?"),
-  findByUserId: db.prepare("SELECT * FROM accounts WHERE userId = ?"),
+  findAllByUserId: db.prepare(
+    "SELECT * FROM accounts WHERE userId = ? ORDER BY createdAt DESC",
+  ),
   insert: db.prepare(
     "INSERT INTO accounts (id, userId, balance, currency, createdAt) VALUES (?, ?, ?, ?, ?)",
   ),

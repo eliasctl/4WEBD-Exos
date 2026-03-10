@@ -7,10 +7,22 @@ router.use(authMiddleware);
 
 router.get('/', (req, res) => {
   // #swagger.tags = ['Transactions']
-  // #swagger.description = 'Historique des transactions du compte connecté'
+  // #swagger.description = 'Historique des transactions (accountId requis si plusieurs comptes)'
   // #swagger.security = [{ "bearerAuth": [] }]
-  const account = accountStmts.findByUserId.get(req.user.id);
-  if (!account) return res.status(404).json({ error: 'Aucun compte trouvé pour cet utilisateur' });
+  const { accountId } = req.query;
+  let account;
+
+  if (accountId) {
+    account = accountStmts.findById.get(accountId);
+    if (!account) return res.status(404).json({ error: 'Compte introuvable' });
+    if (req.user.role !== 'ADMIN' && account.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+  } else {
+    const accounts = accountStmts.findAllByUserId.all(req.user.id);
+    if (accounts.length === 0) return res.status(404).json({ error: 'Aucun compte trouvé pour cet utilisateur' });
+    account = accounts[0];
+  }
 
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
@@ -38,10 +50,21 @@ router.post('/transfer', (req, res) => {
   // #swagger.tags = ['Transactions']
   // #swagger.description = 'Effectuer un virement vers un autre compte'
   // #swagger.security = [{ "bearerAuth": [] }]
-  const fromAccount = accountStmts.findByUserId.get(req.user.id);
-  if (!fromAccount) return res.status(404).json({ error: "Vous n'avez pas de compte" });
+  const { fromAccountId, toAccountId, amount, description } = req.body;
+  let fromAccount;
 
-  const { toAccountId, amount, description } = req.body;
+  if (fromAccountId) {
+    fromAccount = accountStmts.findById.get(fromAccountId);
+    if (!fromAccount) return res.status(404).json({ error: 'Compte source introuvable' });
+    if (req.user.role !== 'ADMIN' && fromAccount.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+  } else {
+    const accounts = accountStmts.findAllByUserId.all(req.user.id);
+    if (accounts.length === 0) return res.status(404).json({ error: "Vous n'avez pas de compte" });
+    fromAccount = accounts[0];
+  }
+
   if (!toAccountId) return res.status(400).json({ error: 'toAccountId requis' });
 
   const parsedAmount = parseFloat(amount);

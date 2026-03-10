@@ -59,7 +59,7 @@ describe("POST /accounts", () => {
     expect(res.body.currency).toBe("USD");
   });
 
-  it("devrait retourner 409 si le compte existe déjà", async () => {
+  it("devrait permettre de créer plusieurs comptes", async () => {
     await request(app)
       .post("/accounts")
       .set("Authorization", `Bearer ${userToken}`)
@@ -68,9 +68,10 @@ describe("POST /accounts", () => {
     const res = await request(app)
       .post("/accounts")
       .set("Authorization", `Bearer ${userToken}`)
-      .send({});
+      .send({ currency: "USD" });
 
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(201);
+    expect(res.body.currency).toBe("USD");
   });
 
   it("devrait retourner 401 sans token", async () => {
