@@ -1,0 +1,12 @@
+{
+  "name": "user-lb",
+  "version": "1.0.0",
+  "description": "Round-robin load balancer for user-service",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

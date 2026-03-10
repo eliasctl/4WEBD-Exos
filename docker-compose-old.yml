@@ -67,25 +67,8 @@ services:
 
   frontend:
     build: ./frontend
-    profiles:
-      - dev
-    ports:
-      - "3010:3000"
-    depends_on:
-      - user-lb
-      - notification-lb
-      - account-service
-    environment:
-      - USER_SERVICE_URL=http://user-lb:3005
-      - ACCOUNT_SERVICE_URL=http://account-service:3003
-      - NOTIFICATION_SERVICE_URL=http://notification-lb:3004
-      - MODE=dev
-    restart: unless-stopped
-
-  frontend-prod:
-    build: ./frontend
-    profiles:
-      - prod
+    # ports:
+    #   - "3010:3000"
     expose:
       - "3000"
     depends_on:
@@ -96,7 +79,6 @@ services:
       - USER_SERVICE_URL=http://user-lb:3005
       - ACCOUNT_SERVICE_URL=http://account-service:3003
       - NOTIFICATION_SERVICE_URL=http://notification-lb:3004
-      - MODE=prod
     restart: unless-stopped
 
 volumes:
