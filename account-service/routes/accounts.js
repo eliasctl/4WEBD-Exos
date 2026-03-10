@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { accountStmts, nextAccountId } = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
-
+const { SERVICE_NUMBER } = require('../config');
 router.use(authMiddleware);
 
 router.get('/', (req, res) => {
@@ -11,11 +11,11 @@ router.get('/', (req, res) => {
   // #swagger.security = [{ "bearerAuth": [] }]
   if (req.user.role === 'ADMIN') {
     const accounts = accountStmts.findAll.all();
-    console.log(`[ACCOUNTS] 📋 Admin liste tous les comptes (${accounts.length})`);
+    console.log(`[ACCOUNTS-${SERVICE_NUMBER}] 📋 Admin liste tous les comptes (${accounts.length})`);
     return res.json({ data: accounts });
   }
   const accounts = accountStmts.findAllByUserId.all(req.user.id);
-  console.log(`[ACCOUNTS] 📋 User ${req.user.id} consulte ses comptes (${accounts.length})`);
+  console.log(`[ACCOUNTS-${SERVICE_NUMBER}] 📋 User ${req.user.id} consulte ses comptes (${accounts.length})`);
   return res.json({ data: accounts });
 });
 
@@ -33,7 +33,7 @@ router.post('/', (req, res) => {
   };
 
   accountStmts.insert.run(account.id, account.userId, account.balance, account.currency, account.createdAt);
-  console.log(`[ACCOUNTS] ✅ Compte créé: ${account.id} pour userId: ${req.user.id}`);
+  console.log(`[ACCOUNTS-${SERVICE_NUMBER}] ✅ Compte créé: ${account.id} pour userId: ${req.user.id}`);
   return res.status(201).json(account);
 });
 
@@ -46,10 +46,10 @@ router.get('/:id', (req, res) => {
     return res.status(404).json({ error: 'Compte introuvable' });
   }
   if (req.user.role !== 'ADMIN' && account.userId !== req.user.id) {
-    console.log(`[ACCOUNTS] ⛔ Accès refusé au compte ${req.params.id} pour userId: ${req.user.id}`);
+    console.log(`[ACCOUNTS-${SERVICE_NUMBER}] ⛔ Accès refusé au compte ${req.params.id} pour userId: ${req.user.id}`);
     return res.status(403).json({ error: 'Accès refusé' });
   }
-  console.log(`[ACCOUNTS] 📋 Consultation du compte ${account.id}`);
+  console.log(`[ACCOUNTS-${SERVICE_NUMBER}] 📋 Consultation du compte ${account.id}`);
   return res.json(account);
 });
 
@@ -81,7 +81,7 @@ router.post('/:id/deposit', (req, res) => {
   };
   txStmts.insert.run(tx.id, tx.type, tx.fromAccount, tx.toAccount, tx.amount, tx.description, tx.createdAt);
 
-  console.log(`[ACCOUNTS] 💰 Dépôt de ${amount} sur ${account.id} — nouveau solde: ${newBalance}`);
+  console.log(`[ACCOUNTS-${SERVICE_NUMBER}] 💰 Dépôt de ${amount} sur ${account.id} — nouveau solde: ${newBalance}`);
   return res.json({ ...account, balance: newBalance, transaction: tx });
 });
 

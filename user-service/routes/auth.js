@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
-const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config');
+const { JWT_SECRET, JWT_EXPIRES_IN, SERVICE_NUMBER } = require('../config');
 
 const router = express.Router();
 
@@ -11,14 +11,14 @@ router.post('/register', async (req, res) => {
   // #swagger.description = 'Créer un compte utilisateur'
   const { firstName, lastName, email, password, role = 'USER' } = req.body;
 
-  console.log(`[AUTH] 📝 Tentative d'inscription — email: ${email}`);
+  console.log(`[AUTH-${SERVICE_NUMBER}] 📝 Tentative d'inscription — email: ${email}`);
 
   if (!firstName || !lastName || !email || !password) {
     return res.status(400).json({ error: 'Tous les champs sont requis : firstName, lastName, email, password' });
   }
 
   if (db.findByEmail(email)) {
-    console.log(`[AUTH] ❌ Email déjà utilisé — ${email}`);
+    console.log(`[AUTH-${SERVICE_NUMBER}] ❌ Email déjà utilisé — ${email}`);
     return res.status(400).json({ error: 'Cet email est déjà utilisé' });
   }
 
@@ -34,7 +34,7 @@ router.post('/register', async (req, res) => {
   };
 
   const created = db.insert(newUser);
-  console.log(`[AUTH] ✅ Inscription réussie — id: ${created.id}, email: ${created.email}, role: ${created.role}`);
+  console.log(`[AUTH-${SERVICE_NUMBER}] ✅ Inscription réussie — id: ${created.id}, email: ${created.email}, role: ${created.role}`);
 
   const { password: _, ...userPublic } = created;
   return res.status(201).json(userPublic);
@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
   // #swagger.description = 'Se connecter et obtenir un token JWT'
   const { email, password } = req.body;
 
-  console.log(`[AUTH] 🔑 Tentative de connexion — email: ${email}`);
+  console.log(`[AUTH-${SERVICE_NUMBER}] 🔑 Tentative de connexion — email: ${email}`);
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email et mot de passe requis' });
@@ -53,13 +53,13 @@ router.post('/login', async (req, res) => {
 
   const user = db.findByEmail(email);
   if (!user) {
-    console.log(`[AUTH] ❌ Utilisateur introuvable — ${email}`);
+    console.log(`[AUTH-${SERVICE_NUMBER}] ❌ Utilisateur introuvable — ${email}`);
     return res.status(401).json({ error: 'Identifiants incorrects' });
   }
 
   const passwordMatch = await bcrypt.compare(password, user.password);
   if (!passwordMatch) {
-    console.log(`[AUTH] ❌ Mot de passe incorrect — ${email}`);
+    console.log(`[AUTH-${SERVICE_NUMBER}] ❌ Mot de passe incorrect — ${email}`);
     return res.status(401).json({ error: 'Identifiants incorrects' });
   }
 
@@ -67,7 +67,7 @@ router.post('/login', async (req, res) => {
     expiresIn: JWT_EXPIRES_IN,
   });
 
-  console.log(`[AUTH] ✅ Connexion réussie — id: ${user.id}, role: ${user.role}`);
+  console.log(`[AUTH-${SERVICE_NUMBER}] ✅ Connexion réussie — id: ${user.id}, role: ${user.role}`);
 
   const { password: _, ...userPublic } = user;
   return res.status(200).json({ token, user: userPublic });
