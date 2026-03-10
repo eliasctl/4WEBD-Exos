@@ -3,7 +3,7 @@ name: CI - Run Tests
 on:
   push:
     branches-ignore:
-      - main
+      - main-old
   pull_request:
 
 permissions:
