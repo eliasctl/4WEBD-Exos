@@ -70,10 +70,14 @@ app.all("/{*splat}", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`\n⚖️  User Load Balancer démarré sur le port ${PORT}`);
-  console.log(`   Mode : Round Robin`);
-  console.log(`   Instances :`);
-  TARGETS.forEach((t, i) => console.log(`     [${i}] ${t}`));
-  console.log();
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n⚖️  User Load Balancer démarré sur le port ${PORT}`);
+    console.log(`   Mode : Round Robin`);
+    console.log(`   Instances :`);
+    TARGETS.forEach((t, i) => console.log(`     [${i}] ${t}`));
+    console.log();
+  });
+}
+
+module.exports = app; // export for testing
