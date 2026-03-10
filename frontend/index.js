@@ -38,6 +38,40 @@ const SERVICES = {
   notifications: NOTIFICATION_SERVICE_URL,
 };
 
+// ─── Debug endpoint (diagnostic Dokploy) ────────────────────────────────────
+
+app.get("/api/debug", async (_req, res) => {
+  const targets = {
+    user_lb: USER_SERVICE_URL + "/health",
+    account_service: ACCOUNT_SERVICE_URL + "/health",
+    notification_lb: NOTIFICATION_SERVICE_URL + "/health",
+  };
+
+  const results = {
+    env: {
+      USER_SERVICE_URL,
+      ACCOUNT_SERVICE_URL,
+      NOTIFICATION_SERVICE_URL,
+    },
+    connectivity: {},
+  };
+
+  for (const [name, url] of Object.entries(targets)) {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      const data = await r.json();
+      results.connectivity[name] = { status: r.status, data };
+    } catch (err) {
+      results.connectivity[name] = { status: "UNREACHABLE", error: err.message };
+    }
+  }
+
+  console.log("[DEBUG]", JSON.stringify(results, null, 2));
+  res.json(results);
+});
+
+// ─── API Proxy ───────────────────────────────────────────────────────────────
+
 app.all("/api/{*splat}", async (req, res) => {
   const fullPath = Array.isArray(req.params.splat)
     ? req.params.splat.join("/")
