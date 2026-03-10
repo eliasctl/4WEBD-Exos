@@ -20,15 +20,6 @@ services:
       - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
 
-  user-lb:
-    build: ./user-lb
-    depends_on:
-      - user-service-1
-      - user-service-2
-    environment:
-      - USER_TARGETS=http://user-service-1:3002,http://user-service-2:3002
-    restart: unless-stopped
-
   notification-service-1:
     build: ./notification-service
     volumes:
@@ -45,15 +36,6 @@ services:
       - DB_PATH=/app/data/notifications.db
     restart: unless-stopped
 
-  notification-lb:
-    build: ./notification-lb
-    depends_on:
-      - notification-service-1
-      - notification-service-2
-    environment:
-      - NOTIFICATION_TARGETS=http://notification-service-1:3001,http://notification-service-2:3001
-    restart: unless-stopped
-
   account-service:
     build: ./account-service
     volumes:
@@ -61,6 +43,17 @@ services:
     environment:
       - DB_PATH=/app/data/accounts.db
       - JWT_SECRET=${JWT_SECRET}
+    restart: unless-stopped
+
+  # ─── Load Balancer (NGINX) ─────────────────────────────────────────────────
+
+  lb:
+    build: ./lb
+    depends_on:
+      - user-service-1
+      - user-service-2
+      - notification-service-1
+      - notification-service-2
     restart: unless-stopped
 
   # ─── Frontend ────────────────────────────────────────────────────────────────
@@ -72,13 +65,12 @@ services:
     expose:
       - "3000"
     depends_on:
-      - user-lb
-      - notification-lb
+      - lb
       - account-service
     environment:
-      - USER_SERVICE_URL=http://user-lb:3005
+      - USER_SERVICE_URL=http://lb:3005
       - ACCOUNT_SERVICE_URL=http://account-service:3003
-      - NOTIFICATION_SERVICE_URL=http://notification-lb:3004
+      - NOTIFICATION_SERVICE_URL=http://lb:3004
     restart: unless-stopped
 
 volumes:
