@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ error: 'Cet email est déjà utilisé' });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, 12);
   const newUser = {
     id: db.nextId(),
     firstName,

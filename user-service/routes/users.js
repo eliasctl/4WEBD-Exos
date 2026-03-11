@@ -83,7 +83,7 @@ router.put('/:id', async (req, res) => {
   }
 
   const fields = { firstName, lastName, email };
-  if (password) fields.password = await bcrypt.hash(password, 10);
+  if (password) fields.password = await bcrypt.hash(password, 12);
   if (role !== undefined) fields.role = role;
 
   const updated = db.update(id, fields);
@@ -104,7 +104,7 @@ router.delete('/:id', adminOnly, (req, res) => {
   db.remove(id);
   console.log(`[USERS] 🗑️  Utilisateur supprimé — id: ${id} par admin: ${req.user.id}`);
 
-  return res.status(200).json({ message: `Utilisateur ${id} supprimé` });
+  return res.status(204).send();
 });
 
 module.exports = router;

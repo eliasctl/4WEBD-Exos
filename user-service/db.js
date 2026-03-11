@@ -30,7 +30,7 @@ console.log("[DB] ✅ Base SQLite connectée — users.db");
 const count = db.prepare("SELECT COUNT(*) as count FROM users").get();
 if (count.count === 0) {
   const bcrypt = require("bcryptjs");
-  const hashedPassword = bcrypt.hashSync("admin123", 10);
+  const hashedPassword = bcrypt.hashSync("admin123", 12);
   db.prepare(
     `
     INSERT INTO users (id, firstName, lastName, email, password, role, createdAt)

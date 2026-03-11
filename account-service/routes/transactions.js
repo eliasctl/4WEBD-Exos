@@ -105,7 +105,7 @@ router.post("/transfer", (req, res) => {
     return res.json({ transaction: tx, newBalance: updatedFrom.balance });
   } catch (err) {
     console.log(`[TRANSACTIONS] ❌ Virement échoué — ${err.message}`);
-    return res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: 'Virement échoué : ' + err.message });
   }
 });
 

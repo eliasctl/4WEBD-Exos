@@ -106,6 +106,47 @@ const txStmts = {
   ),
 };
 
+const deposit = db.transaction((accountId, amount, description) => {
+  const account = accountStmts.findById.get(accountId);
+  if (!account) throw new Error("Compte introuvable");
+
+  const newBalance = account.balance + amount;
+  accountStmts.updateBalance.run(newBalance, accountId);
+
+  const tx = {
+    id: nextTxId(),
+    type: "DEPOSIT",
+    fromAccount: null,
+    toAccount: accountId,
+    amount,
+    description: description || null,
+    createdAt: new Date().toISOString(),
+  };
+  txStmts.insert.run(tx.id, tx.type, tx.fromAccount, tx.toAccount, tx.amount, tx.description, tx.createdAt);
+  return { account: { ...account, balance: newBalance }, transaction: tx };
+});
+
+const withdraw = db.transaction((accountId, amount, description) => {
+  const account = accountStmts.findById.get(accountId);
+  if (!account) throw new Error("Compte introuvable");
+  if (account.balance < amount) throw new Error("Solde insuffisant");
+
+  const newBalance = account.balance - amount;
+  accountStmts.updateBalance.run(newBalance, accountId);
+
+  const tx = {
+    id: nextTxId(),
+    type: "WITHDRAWAL",
+    fromAccount: accountId,
+    toAccount: null,
+    amount,
+    description: description || null,
+    createdAt: new Date().toISOString(),
+  };
+  txStmts.insert.run(tx.id, tx.type, tx.fromAccount, tx.toAccount, tx.amount, tx.description, tx.createdAt);
+  return { account: { ...account, balance: newBalance }, transaction: tx };
+});
+
 const transfer = db.transaction((fromId, toId, amount, description) => {
   const from = accountStmts.findById.get(fromId);
   const to = accountStmts.findById.get(toId);
@@ -149,6 +190,8 @@ module.exports = {
   db,
   accountStmts,
   txStmts,
+  deposit,
+  withdraw,
   transfer,
   nextAccountId,
   nextTxId,

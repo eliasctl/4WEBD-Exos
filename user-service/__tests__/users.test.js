@@ -181,8 +181,8 @@ describe("DELETE /users/:id", () => {
       .delete(`/users/${userId}`)
       .set("Authorization", `Bearer ${adminToken}`);
 
-    expect(res.status).toBe(200);
-    expect(res.body.message).toContain(userId);
+    expect(res.status).toBe(204);
+    expect(res.body).toEqual({});
   });
 
   it("devrait retourner 403 pour un non-admin", async () => {
