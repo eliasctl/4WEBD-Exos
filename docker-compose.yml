@@ -16,6 +16,8 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - app-network
 
   # ─── Backend services (reseau interne uniquement) ───────────────────────────
 
@@ -28,6 +30,8 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - SERVICE_NUMBER=1
     restart: unless-stopped
+    networks:
+      - app-network
 
   user-service-2:
     build: ./user-service
@@ -38,6 +42,8 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - SERVICE_NUMBER=2
     restart: unless-stopped
+    networks:
+      - app-network
 
   notification-service-1:
     build: ./notification-service
@@ -51,6 +57,8 @@ services:
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - app-network
 
   notification-service-2:
     build: ./notification-service
@@ -64,6 +72,8 @@ services:
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - app-network
 
   notification-worker:
     build: ./notification-service
@@ -77,6 +87,8 @@ services:
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - app-network
 
   account-service:
     build: ./account-service
@@ -91,6 +103,8 @@ services:
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - app-network
 
   # ─── Load Balancer (NGINX) ─────────────────────────────────────────────────
 
@@ -102,6 +116,8 @@ services:
       - notification-service-1
       - notification-service-2
     restart: unless-stopped
+    networks:
+      - app-network
 
   # ─── Frontend ────────────────────────────────────────────────────────────────
 
@@ -119,8 +135,14 @@ services:
       - ACCOUNT_SERVICE_URL=http://account-service:3003
       - NOTIFICATION_SERVICE_URL=http://lb:3004
     restart: unless-stopped
+    networks:
+      - app-network
 
 volumes:
   user-data:
   notification-data:
   account-data:
+
+networks:
+  app-network:
+    driver: bridge

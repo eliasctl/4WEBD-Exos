@@ -21,6 +21,6 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 start().catch((err) => {
-  console.error("[WORKER] ❌ Erreur fatale:", err.message);
+  console.error("[WORKER] ❌ Erreur fatale après tous les essais:", err.message);
   process.exit(1);
 });

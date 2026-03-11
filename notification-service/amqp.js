@@ -6,20 +6,28 @@ const QUEUE = "transaction_notifications";
 let connection;
 let channel;
 
-async function getChannel() {
+async function getChannel(retries = 10, delay = 3000) {
   if (channel) return channel;
-  connection = await amqp.connect(AMQP_URL);
-  channel = await connection.createChannel();
-  await channel.assertQueue(QUEUE, { durable: true });
+  for (let i = 1; i <= retries; i++) {
+    try {
+      connection = await amqp.connect(AMQP_URL);
+      channel = await connection.createChannel();
+      await channel.assertQueue(QUEUE, { durable: true });
 
-  connection.on("close", () => {
-    console.log("[AMQP] Connexion fermée");
-    channel = null;
-    connection = null;
-  });
+      connection.on("close", () => {
+        console.log("[AMQP] Connexion fermée");
+        channel = null;
+        connection = null;
+      });
 
-  console.log("[AMQP] ✅ Connecté à RabbitMQ");
-  return channel;
+      console.log("[AMQP] ✅ Connecté à RabbitMQ");
+      return channel;
+    } catch (err) {
+      console.warn(`[AMQP] ⏳ Tentative ${i}/${retries} échouée: ${err.message}`);
+      if (i === retries) throw err;
+      await new Promise((res) => setTimeout(res, delay));
+    }
+  }
 }
 
 async function consumeNotifications(handler) {
