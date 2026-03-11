@@ -13,7 +13,10 @@ const app = express();
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  );
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.header("Access-Control-Allow-Credentials", "true");
   if (req.method === "OPTIONS") return res.sendStatus(204);
@@ -44,7 +47,7 @@ app.use("/transactions", transactionsRouter);
 // ─── Démarrage ────────────────────────────────────────────────────────────────
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`\n🚀 Account Service démarré sur le port ${PORT}`);
     console.log(`   Swagger UI  : http://localhost:${PORT}/api-docs`);
     console.log(`   GET         : http://localhost:${PORT}/health`);
@@ -60,6 +63,15 @@ if (require.main === module) {
       `   POST        : http://localhost:${PORT}/transactions/transfer\n`,
     );
   });
+
+  const { closeConnection } = require("./amqp");
+  const shutdown = async () => {
+    console.log("\n[SHUTDOWN] Fermeture en cours...");
+    await closeConnection();
+    server.close(() => process.exit(0));
+  };
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 }
 
 module.exports = app;

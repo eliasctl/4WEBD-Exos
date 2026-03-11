@@ -262,4 +262,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, resetDb };
+module.exports = { app, resetDb, sendNotification };

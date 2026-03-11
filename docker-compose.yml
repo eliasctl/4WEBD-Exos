@@ -1,5 +1,22 @@
 services:
 
+  # ─── RabbitMQ ───────────────────────────────────────────────────────────────
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   # ─── Backend services (reseau interne uniquement) ───────────────────────────
 
   user-service-1:
@@ -28,7 +45,11 @@ services:
       - notification-data:/app/data
     environment:
       - DB_PATH=/app/data/notifications.db
+      - AMQP_URL=amqp://guest:guest@rabbitmq
       - SERVICE_NUMBER=1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   notification-service-2:
@@ -37,7 +58,24 @@ services:
       - notification-data:/app/data
     environment:
       - DB_PATH=/app/data/notifications.db
+      - AMQP_URL=amqp://guest:guest@rabbitmq
       - SERVICE_NUMBER=2
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notification-worker:
+    build: ./notification-service
+    command: ["node", "worker.js"]
+    volumes:
+      - notification-data:/app/data
+    environment:
+      - DB_PATH=/app/data/notifications.db
+      - AMQP_URL=amqp://guest:guest@rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   account-service:
@@ -47,7 +85,11 @@ services:
     environment:
       - DB_PATH=/app/data/accounts.db
       - JWT_SECRET=${JWT_SECRET}
+      - AMQP_URL=amqp://guest:guest@rabbitmq
       - SERVICE_NUMBER=1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   # ─── Load Balancer (NGINX) ─────────────────────────────────────────────────
